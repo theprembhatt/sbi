@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SBI Health — Alpha Select Live Calculator</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+    --purple: #764ba2; --purple-dark: #4a148c;
+    --purple-light: rgba(118,75,162,0.10);
+    --green: #10b981; --red: #ef4444; --orange: #f59e0b; --blue: #0288d1;
+    --bg: #f0f4f8; --surface: #fff; --border: #e2e8f0;
+    --text: #1e293b; --muted: #64748b; --radius: 10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;}
+
+/* ── TOP PANEL ── */
+.top{background:#fff;border-bottom:2px solid var(--border);padding:10px 16px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.07);}
+.top h1{font-size:16px;font-weight:900;background:linear-gradient(135deg,#4a148c,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px;}
+.inputs-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+.ig{display:flex;flex-direction:column;gap:4px;}
+.ig label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+select,input[type=number]{padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:#f8fafc;color:var(--text);appearance:none;cursor:pointer;min-width:110px;}
+select:focus,input:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px var(--purple-light);background:#fff;}
+.tg{display:flex;gap:3px;background:#f1f5f9;border-radius:8px;padding:3px;border:1px solid var(--border);}
+.tb{flex:1;padding:5px 8px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;background:transparent;color:var(--muted);transition:all .2s;white-space:nowrap;}
+.tb.act{background:#fff;color:var(--purple);box-shadow:0 1px 3px rgba(0,0,0,.1);}
+.members-strip{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center;}
+.mpill{display:flex;align-items:center;gap:5px;background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:5px 9px;}
+.mpill .ml{font-size:10px;font-weight:800;color:var(--purple);white-space:nowrap;}
+.mpill input[type=number]{width:52px;padding:4px 5px;font-size:12px;min-width:unset;}
+.mpill select{width:72px;padding:4px 5px;font-size:12px;min-width:unset;}
+.genbtn{padding:7px 12px;background:linear-gradient(135deg,#4a148c,#764ba2);color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;}
+.girl-tag{display:none;align-items:center;gap:4px;background:#dcfce7;color:#166534;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;}
+
+/* ── BODY ── */
+.body{display:flex;flex:1;overflow:hidden;}
+
+/* ── LEFT PANEL ── */
+.left{width:260px;flex-shrink:0;background:#fff;border-right:2px solid var(--border);overflow-y:auto;padding:12px;}
+.sec-head{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--purple);background:var(--purple-light);padding:5px 10px;border-radius:6px;margin:10px 0 8px;display:flex;align-items:center;gap:6px;}
+.sec-head:first-child{margin-top:0;}
+.sw-row{display:flex;align-items:center;justify-content:space-between;padding:6px 2px;border-bottom:1px solid #f1f5f9;}
+.sw-row:last-of-type{border-bottom:none;}
+.sw-lbl{font-size:12px;font-weight:600;color:var(--text);}
+.sw-sub{font-size:10px;color:var(--muted);}
+.sw{position:relative;width:34px;height:19px;flex-shrink:0;}
+.sw input{opacity:0;width:0;height:0;}
+.sw-s{position:absolute;cursor:pointer;inset:0;background:#cbd5e1;border-radius:20px;transition:.3s;}
+.sw-s:before{content:'';position:absolute;width:13px;height:13px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;}
+input:checked+.sw-s{background:var(--purple);}
+input:checked+.sw-s:before{transform:translateX(15px);}
+.sel-addon{display:none;margin-top:5px;width:100%;}
+.sel-addon.show{display:block;}
+.full-sel{width:100%;font-size:12px;padding:6px 8px;margin-top:4px;}
+
+/* ── RIGHT PANEL ── */
+.right{flex:1;overflow-y:auto;padding:14px;background:#f8fafc;}
+.ytabs{display:flex;gap:6px;margin-bottom:12px;}
+.ytab{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:2px solid var(--border);background:#fff;color:var(--muted);transition:all .2s;}
+.ytab.act{background:linear-gradient(135deg,#4a148c,#764ba2);color:#fff;border-color:transparent;box-shadow:0 4px 10px rgba(118,75,162,.3);}
+
+/* ── LEDGER ── */
+.ledger{background:#fff;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);margin-bottom:12px;}
+.ls{border-bottom:1px solid var(--border);}
+.ls:last-child{border-bottom:none;}
+.lsh{background:#f8fafc;padding:7px 13px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:5px;}
+.lr{display:flex;justify-content:space-between;align-items:center;padding:6px 13px;border-bottom:1px dashed #f1f5f9;font-size:12px;}
+.lr:last-child{border-bottom:none;}
+.lr-l{color:var(--muted);font-weight:500;flex:1;display:flex;align-items:center;gap:5px;}
+.lr-b{font-size:10px;background:#f1f5f9;color:var(--muted);padding:1px 5px;border-radius:4px;font-weight:600;}
+.lr-v{font-weight:700;font-size:12px;font-variant-numeric:tabular-nums;}
+.cr{color:var(--green);} .dr{color:var(--red);} .nt{color:var(--text);} .ld{color:var(--orange);}
+.lsub{display:flex;justify-content:space-between;align-items:center;padding:8px 13px;background:#f1f5f9;font-size:12px;font-weight:800;color:var(--text);border-top:1px solid var(--border);}
+.ltotal{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;background:linear-gradient(135deg,#4a148c,#764ba2);color:#fff;font-size:14px;font-weight:900;}
+.lt-amt{font-size:20px;}
+.cap-warn{margin:5px 13px;background:#fef9c3;color:#854d0e;border-radius:6px;padding:5px 10px;font-size:10px;font-weight:700;display:flex;align-items:center;gap:5px;}
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty i{font-size:36px;margin-bottom:10px;opacity:.3;display:block;}
+.empty p{font-size:13px;font-weight:600;}
+::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px;}
+.ind-note{font-size:10px;color:var(--muted);text-align:center;padding:8px;font-style:italic;}
+</style>
+</head>
+<body>
+
+<!-- TOP -->
+<div class="top">
+    <h1><i class="fas fa-shield-alt"></i> SBI Health — Alpha Select Live Calculator</h1>
+    <div class="inputs-row">
+        <div class="ig">
+            <label>Sum Insured</label>
+            <select id="si" onchange="onAnyChange()">
+                <option>5 Lac</option><option>7.5 Lac</option><option selected>10 Lac</option>
+                <option>12.5 Lac</option><option>15 Lac</option><option>20 Lac</option>
+                <option>25 Lac</option><option>30 Lac</option><option>35 Lac</option>
+                <option>50 Lac</option><option>75 Lac</option><option>1Cr</option>
+            </select>
+        </div>
+        <div class="ig">
+            <label>Policy Type</label>
+            <div class="tg" id="ptGroup">
+                <button class="tb act" data-v="Individual" onclick="setTG('ptGroup',this);enforceCombination();onAnyChange();">Individual</button>
+                <button class="tb" data-v="Family Floater" onclick="setTG('ptGroup',this);enforceCombination();onAnyChange();">Family Floater</button>
+                <button class="tb" data-v="Individual Floater" onclick="setTG('ptGroup',this);enforceCombination();onAnyChange();">Ind. Floater</button>
+            </div>
+        </div>
+        <div class="ig">
+            <label>Zone</label>
+            <div class="tg" id="zoneGroup">
+                <button class="tb" data-v="Zone A" onclick="setTG('zoneGroup',this);onAnyChange();">Zone A</button>
+                <button class="tb act" data-v="Zone B" onclick="setTG('zoneGroup',this);onAnyChange();">Zone B</button>
+            </div>
+        </div>
+        <div class="ig">
+            <label>Combination</label>
+            <div style="display:flex;gap:5px;">
+                <select id="combo" onchange="renderMembers();onAnyChange();" style="flex:1;">
+                    <option>1A</option><option>2A</option>
+                    <option>1A+1C</option><option>1A+2C</option><option>1A+3C</option><option>1A+4C</option><option>1A+5C</option>
+                    <option>2A+1C</option><option>2A+2C</option><option>2A+3C</option><option>2A+4C</option><option>2A+5C</option>
+                </select>
+                <button class="genbtn" onclick="renderMembers();onAnyChange();"><i class="fas fa-sync-alt"></i></button>
+            </div>
+        </div>
+        <div class="ig">
+            <label>Tenure</label>
+            <select id="tenure" onchange="onAnyChange()">
+                <option value="1">1 Year</option><option value="2">2 Year</option><option value="3">3 Year</option>
+                <option value="4">4 Year</option><option value="5">5 Year</option>
+            </select>
+        </div>
+    </div>
+    <div class="members-strip" id="mstrip"></div>
+</div>
+
+<!-- BODY -->
+<div class="body">
+
+<!-- LEFT -->
+<div class="left">
+    <div class="sec-head"><i class="fas fa-sliders-h"></i> Modifiers</div>
+
+    <div class="sw-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
+        <div class="sw-lbl">Room Category</div>
+        <select class="full-sel" id="roomCat" onchange="onAnyChange()">
+            <option value="Actuals">Actuals (No Discount)</option>
+            <option value="Single Pvt AC Room">Single Pvt AC Room (−7.5%)</option>
+            <option value="Twin-Sharing">Twin-Sharing (−10%)</option>
+        </select>
+    </div>
+    <div class="sw-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
+        <div class="sw-lbl">PED Waiting Period</div>
+        <select class="full-sel" id="pedWait" onchange="onAnyChange()">
+            <option value="3 Year">3 Years (−15% discount)</option>
+            <option value="2 Year">2 Years (Neutral)</option>
+            <option value="1 Year">1 Year (+30% loading)</option>
+        </select>
+    </div>
+    <div class="sw-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
+        <div class="sw-lbl">Specific Disease Wait</div>
+        <select class="full-sel" id="specWait" onchange="onAnyChange()">
+            <option value="2 Year">2 Years (Neutral)</option>
+            <option value="1 Year">1 Year (+10% loading)</option>
+        </select>
+    </div>
+    <div class="sw-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
+        <div class="sw-lbl">NCB / No Claim</div>
+        <select class="full-sel" id="ncb" onchange="onAnyChange()">
+            <option value="100">Upto 100% (Base)</option>
+            <option value="200">Upto 200% (+5%)</option><option value="300">Upto 300% (+6%)</option>
+            <option value="400">Upto 400% (+7%)</option><option value="500">Upto 500% (+8%)</option>
+            <option value="600">Upto 600% (+9%)</option><option value="700">Upto 700% (+10%)</option>
+            <option value="800">Upto 800% (+11%)</option><option value="900">Upto 900% (+12%)</option>
+            <option value="1000">Upto 1000% (+13%)</option>
+            <option value="NCD">No Claim Discount (−2.5%)</option>
+        </select>
+    </div>
+
+    <div class="sec-head" style="margin-top:12px;"><i class="fas fa-plus-circle"></i> Optional Covers</div>
+
+    <div class="sw-row">
+        <div><div class="sw-lbl">Consumables</div><div class="sw-sub">+10% of adjusted base</div></div>
+        <label class="sw"><input type="checkbox" id="oc_cons" onchange="onAnyChange()"><span class="sw-s"></span></label>
+    </div>
+    <div class="sw-row">
+        <div><div class="sw-lbl">Air Ambulance</div><div class="sw-sub">Age-based rate × 2.0</div></div>
+        <label class="sw"><input type="checkbox" id="oc_air" onchange="onAnyChange()"><span class="sw-s"></span></label>
+    </div>
+    <div class="sw-row">
+        <div><div class="sw-lbl">Endless Sum Insured</div><div class="sw-sub" id="endless_sub">+15% of adjusted base</div></div>
+        <label class="sw"><input type="checkbox" id="oc_endless" onchange="onAnyChange()"><span class="sw-s"></span></label>
+    </div>
+    <div class="sw-row">
+        <div><div class="sw-lbl">Reconstructive Surgery</div><div class="sw-sub">₹550 per member</div></div>
+        <label class="sw"><input type="checkbox" id="oc_recon" onchange="onAnyChange()"><span class="sw-s"></span></label>
+    </div>
+
+    <div class="sw-row" style="flex-direction:column;align-items:flex-start;gap:4px;" id="opd_wrap">
+        <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+            <div><div class="sw-lbl">OPD Coverage</div><div class="sw-sub">SI ≥ 10 Lac required</div></div>
+            <label class="sw"><input type="checkbox" id="oc_opd" onchange="toggleSub('oc_opd','opd_sel');onAnyChange()"><span class="sw-s"></span></label>
+        </div>
+        <select id="opd_sel" class="sel-addon" onchange="onAnyChange()"><option>Rs. 5,000</option></select>
+    </div>
+
+    <div class="sw-row" style="flex-direction:column;align-items:flex-start;gap:4px;" id="hdc_wrap">
+        <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+            <div><div class="sw-lbl">Hospital Daily Cash</div><div class="sw-sub">SI ≥ 10 Lac required</div></div>
+            <label class="sw"><input type="checkbox" id="oc_hdc" onchange="toggleSub('oc_hdc','hdc_sel');onAnyChange()"><span class="sw-s"></span></label>
+        </div>
+        <select id="hdc_sel" class="sel-addon" onchange="onAnyChange()">
+            <option value="3 Days">3 Days</option><option value="5 Days">5 Days</option><option value="10 Days">10 Days</option>
+        </select>
+    </div>
+
+    <div class="sw-row">
+        <div class="sw-lbl">Health Check-Up</div>
+        <select id="oc_hc" onchange="onAnyChange()" style="width:100px;font-size:11px;padding:4px 6px;min-width:unset;">
+            <option value="Not Opted">Not Opted</option>
+            <option value="Rs.3,000">₹ 3,000</option><option value="Rs.4,000">₹ 4,000</option><option value="Rs.5,000">₹ 5,000</option>
+        </select>
+    </div>
+
+    <div id="mat_wrap" class="sw-row" style="flex-direction:column;align-items:flex-start;gap:4px;display:none!important;">
+        <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+            <div><div class="sw-lbl">Maternity Benefit</div><div class="sw-sub" id="mat_sub">Female 18–45 required</div></div>
+            <label class="sw"><input type="checkbox" id="oc_mat" onchange="toggleSub('oc_mat','mat_wait');onAnyChange()"><span class="sw-s"></span></label>
+        </div>
+        <select id="mat_wait" class="sel-addon" onchange="onAnyChange()">
+            <option value="1 Year">1 Year Wait (×1.675)</option>
+            <option value="2 Years">2 Years Wait (×1.0)</option>
+            <option value="3 Years">3 Years Wait (×0.8)</option>
+        </select>
+    </div>
+
+    <div class="sec-head" style="margin-top:12px;"><i class="fas fa-percent"></i> Discounts</div>
+
+    <div class="sw-row">
+        <div><div class="sw-lbl">Welcome Discount</div><div class="sw-sub">−5%</div></div>
+        <label class="sw"><input type="checkbox" id="d_welcome" onchange="onAnyChange()"><span class="sw-s"></span></label>
+    </div>
+    <div class="sw-row">
+        <div><div class="sw-lbl">Preferred Network</div><div class="sw-sub">−10%</div></div>
+        <label class="sw"><input type="checkbox" id="d_pref" onchange="onAnyChange()"><span class="sw-s"></span></label>
+    </div>
+    <div class="sw-row">
+        <div><div class="sw-lbl">Cross-Sell Discount</div><div class="sw-sub">−5%</div></div>
+        <label class="sw"><input type="checkbox" id="d_cross" onchange="onAnyChange()"><span class="sw-s"></span></label>
+    </div>
+    <div class="sw-row">
+        <div><div class="sw-lbl">Girl Child</div><div class="sw-sub" id="girl_sub">Auto-detected from members</div></div>
+        <div id="girl_tag" class="girl-tag"><i class="fas fa-check"></i> −5% Auto</div>
+    </div>
+</div>
+
+<!-- RIGHT -->
+<div class="right" id="right">
+    <div class="empty"><i class="fas fa-calculator"></i><p>Add member ages above to see live breakdown</p></div>
+</div>
+
+</div><!-- end body -->
+
+<script>
+// ════════════════════════════════════════
+// RATE TABLES
+// ════════════════════════════════════════
+const SI_MAP = {"5 Lac":500000,"7.5 Lac":750000,"10 Lac":1000000,"12.5 Lac":1250000,"15 Lac":1500000,"20 Lac":2000000,"25 Lac":2500000,"30 Lac":3000000,"35 Lac":3500000,"50 Lac":5000000,"75 Lac":7500000,"1Cr":10000000};
+
+const BASE_RATES = {
+    "0-17":  {500000:5752,750000:6608,1000000:6893,1250000:7635,1500000:8634,2000000:9776,2500000:10346,3000000:10774,3500000:11202,5000000:12487,7500000:13477,10000000:14333},
+    "18-25": {500000:5480,750000:6295,1000000:6567,1250000:7274,1500000:8225,2000000:9312,2500000:9856,3000000:10405,3500000:10813,5000000:12036,7500000:13038,10000000:13853},
+    "26-30": {500000:6023,750000:6920,1000000:7219,1250000:7997,1500000:9043,2000000:10239,2500000:10837,3000000:11427,3500000:11875,5000000:13221,7500000:14315,10000000:15212},
+    "31-35": {500000:6567,750000:7545,1000000:7872,1250000:8720,1500000:9861,2000000:11166,2500000:11818,3000000:12449,3500000:12938,5000000:14406,7500000:15593,10000000:16571},
+    "36-40": {500000:8198,750000:9421,1000000:9829,1250000:10888,1500000:12315,2000000:13946,2500000:14761,3000000:15515,3500000:16126,5000000:17961,7500000:19425,10000000:20648},
+    "41-45": {500000:10372,750000:11921,1000000:12438,1250000:13780,1500000:15588,2000000:17653,2500000:18686,3000000:19602,3500000:20377,5000000:22701,7500000:24534,10000000:26084},
+    "46-50": {500000:13090,750000:15047,1000000:15699,1250000:17434,1500000:19718,2000000:22327,2500000:23631,3000000:24738,3500000:25716,5000000:28652,7500000:31121,10000000:33078},
+    "51-55": {500000:17982,750000:20673,1000000:21570,1250000:23941,1500000:27080,2000000:30668,2500000:32462,3000000:33935,3500000:35280,5000000:39317,7500000:42618,10000000:45309},
+    "56-60": {500000:22744,750000:26128,1000000:27256,1250000:30189,1500000:34136,2000000:38648,2500000:40904,3000000:42622,3500000:44313,5000000:49389,7500000:53476,10000000:56860},
+    "61-65": {500000:32921,750000:37831,1000000:39468,1250000:43749,1500000:49478,2000000:56025,2500000:59299,3000000:61754,3500000:64209,5000000:71574,7500000:77391,10000000:82302},
+    "66-70": {500000:46420,750000:53356,1000000:55667,1250000:61704,1500000:69795,2000000:79042,2500000:83665,3000000:87133,3500000:90600,5000000:101003,7500000:109115,10000000:116050},
+    "71-75": {500000:62603,750000:71965,1000000:75086,1250000:83226,1500000:94149,2000000:106632,2500000:112874,3000000:117555,3500000:122237,5000000:136280,7500000:147143,10000000:156506},
+    "76-80": {500000:84449,750000:97088,1000000:101301,1250000:112281,1500000:127027,2000000:143880,2500000:152306,3000000:158626,3500000:164945,5000000:183905,7500000:198481,10000000:211121},
+    "81-85": {500000:113941,750000:131004,1000000:136692,1250000:151506,1500000:171413,2000000:194164,2500000:205539,3000000:214071,3500000:222602,5000000:248197,7500000:267787,10000000:284851},
+    "85+":   {500000:153755,750000:176790,1000000:184469,1250000:204458,1500000:231333,2000000:262047,2500000:277404,3000000:288921,3500000:300439,5000000:334992,7500000:361351,10000000:384386}
+};
+const ROAD={  "0-17":21,"18-25":14,"26-30":18,"31-35":22,"36-40":27,"41-45":34,"46-50":43,"51-55":53,"56-60":66,"61-65":83,"66-70":103,"71-75":129,"76-80":161,"81-85":200,"85+":250};
+const RADIO={"0-17":24,"18-25":16,"26-30":20,"31-35":25,"36-40":31,"41-45":39,"46-50":49,"51-55":61,"56-60":76,"61-65":95,"66-70":118,"71-75":147,"76-80":183,"81-85":229,"85+":285};
+const AIR={  "0-17":121,"18-25":81,"26-30":101,"31-35":126,"36-40":157,"41-45":196,"46-50":244,"51-55":304,"56-60":380,"61-65":473,"66-70":590,"71-75":736,"76-80":918,"81-85":1144,"85+":1427};
+const HDC_R={"0-17":301,"18-25":204,"26-30":257,"31-35":324,"36-40":413,"41-45":517,"46-50":647,"51-55":825,"56-60":1055,"61-65":1347,"66-70":1719,"71-75":2190,"76-80":2857,"81-85":4164,"85+":5950};
+const CONV={"0-17":6.30,"18-25":4.23,"26-30":5.27,"31-35":6.57,"36-40":11.98,"41-45":14.94,"46-50":18.63,"51-55":23.23,"56-60":28.97,"61-65":36.13,"66-70":45.05,"71-75":56.17,"76-80":70.04,"81-85":87.34,"85+":108.91};
+const HDC_DAYS={"3 Days":0.80,"5 Days":0.85,"10 Days":0.90};
+const HDC_DED=0.597004515537621;
+const MAT_RATES={"18-35":{50000:12053,75000:18079},"36-45":{50000:10245,75000:15368},"45+":{50000:6026,75000:9040}};
+const NB_RATES={500000:6165,750000:7082,1000000:7388,1250000:8183,1500000:9253,2000000:10476,2500000:11088,3000000:11706,3500000:12164,5000000:13540,7500000:14668,10000000:15585};
+const HC_RATES={"Rs.3,000":1468,"Rs.4,000":1957,"Rs.5,000":2447};
+const OPD_BASE=9175;
+const OPD_LF={"Rs. 5,000":0.30,"Rs. 10,000":0.60,"Rs. 25,000":1.00};
+const TENURE_DISC={1:0,2:0.06,3:0.09,4:0.11,5:0.14};
+const CHILD_VAC=2202, E_OPN=147;
+
+// ════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════
+function band(age){
+    if(age<=17)return"0-17"; if(age<=25)return"18-25"; if(age<=30)return"26-30";
+    if(age<=35)return"31-35"; if(age<=40)return"36-40"; if(age<=45)return"41-45";
+    if(age<=50)return"46-50"; if(age<=55)return"51-55"; if(age<=60)return"56-60";
+    if(age<=65)return"61-65"; if(age<=70)return"66-70"; if(age<=75)return"71-75";
+    if(age<=80)return"76-80"; if(age<=85)return"81-85"; return"85+";
+}
+function matBand(age){if(age<=35)return"18-35";if(age<=45)return"36-45";return"45+";}
+function organRate(si){return si<=1000000?15:si<=10000000?22:29;}
+function restorePct(si){return si<=1000000?.10:si<=10000000?.05:.03;}
+function endlessPct(si){return si<=1000000?.15:si<=10000000?.10:.05;}
+function floaterD(n){return n===2?.25:n===3?.30:n>3?.35:0;}
+function f(v){return'₹ '+Math.abs(v).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function gtv(gid){const a=document.querySelector('#'+gid+' .act');return a?a.getAttribute('data-v'):'';}
+function setTG(gid,btn){document.querySelectorAll('#'+gid+' .tb').forEach(b=>b.classList.remove('act'));btn.classList.add('act');}
+function el(id){return document.getElementById(id);}
+function chk(id){const e=el(id);return e&&e.checked;}
+function toggleSub(chkId,selId){el(selId).classList.toggle('show',el(chkId).checked);}
+
+// ════════════════════════════════════════
+// MEMBERS
+// ════════════════════════════════════════
+function parseComb(c){let a=0,ch=0;c.split('+').forEach(p=>{if(p.includes('A'))a+=parseInt(p)||0;if(p.includes('C'))ch+=parseInt(p)||0;});return{a,ch};}
+
+function renderMembers(){
+    const{a,ch}=parseComb(el('combo').value);
+    const s=el('mstrip'); s.innerHTML='';
+    for(let i=1;i<=a;i++) s.innerHTML+=pill(`Adult ${i}`,'adult',i,18,100);
+    for(let i=1;i<=ch;i++) s.innerHTML+=pill(`Child ${i}`,'child',i,0,25);
+    s.querySelectorAll('.age-inp,.gender-sel').forEach(e=>{
+        e.addEventListener('change',()=>{detectGirl();updateMatVis();onAnyChange();});
+        e.addEventListener('input',()=>{detectGirl();updateMatVis();onAnyChange();});
+    });
+    detectGirl(); updateMatVis(); updateOpdOptions();
+}
+
+function pill(lbl,role,idx,mn,mx){
+    return `<div class="mpill">
+        <span class="ml">${lbl}</span>
+        <input type="number" class="age-inp" data-role="${role}" min="${mn}" max="${mx}" placeholder="Age" style="width:52px;padding:4px 5px;font-size:12px;">
+        <select class="gender-sel" data-role="${role}" style="width:72px;padding:4px 5px;font-size:12px;">
+            <option>Male</option><option>Female</option>
+        </select>
+    </div>`;
+}
+
+function getMembers(){
+    const ms=[];
+    document.querySelectorAll('.mpill').forEach(p=>{
+        const ai=p.querySelector('.age-inp'), gs=p.querySelector('.gender-sel');
+        const age=parseInt(ai.value);
+        if(!isNaN(age)) ms.push({age,gender:gs.value,role:ai.getAttribute('data-role')});
+    });
+    return ms;
+}
+
+function detectGirl(){
+    let has=false;
+    document.querySelectorAll('.gender-sel').forEach(s=>{if(s.getAttribute('data-role')==='child'&&s.value==='Female')has=true;});
+    el('girl_tag').style.display=has?'inline-flex':'none';
+    el('girl_sub').textContent=has?'−5% applied':'Auto-detected from members';
+    el('girl_sub').style.color=has?'var(--green)':'';
+}
+function hasGirl(){let h=false;document.querySelectorAll('.gender-sel').forEach(s=>{if(s.getAttribute('data-role')==='child'&&s.value==='Female')h=true;});return h;}
+
+function updateMatVis(){
+    const siVal=SI_MAP[el('si').value]||0;
+    let ef=false;
+    document.querySelectorAll('.mpill').forEach(p=>{
+        const role=p.querySelector('.age-inp').getAttribute('data-role');
+        const age=parseInt(p.querySelector('.age-inp').value)||0;
+        const gen=p.querySelector('.gender-sel').value;
+        if(role==='adult'&&gen==='Female'&&age>=18&&age<=45)ef=true;
+    });
+    const mw=el('mat_wrap');
+    if(siVal>=1000000&&ef){mw.style.setProperty('display','flex','important');}
+    else{mw.style.setProperty('display','none','important');el('oc_mat').checked=false;el('mat_wait').classList.remove('show');}
+    el('mat_sub').textContent=siVal===1000000?'₹50,000 benefit':'₹75,000 benefit';
+}
+
+function updateOpdOptions(){
+    const siVal=SI_MAP[el('si').value]||0;
+    const wrap=el('opd_wrap'), cb=el('oc_opd'), sel=el('opd_sel');
+    if(siVal<1000000){wrap.style.opacity='.4';cb.disabled=true;cb.checked=false;sel.classList.remove('show');}
+    else{wrap.style.opacity='1';cb.disabled=false;const opts=siVal<=2500000?['Rs. 5,000']:['Rs. 10,000','Rs. 25,000'];sel.innerHTML=opts.map(o=>`<option>${o}</option>`).join('');}
+    const hw=el('hdc_wrap'), hcb=el('oc_hdc'), hsel=el('hdc_sel');
+    if(siVal<1000000){hw.style.opacity='.4';hcb.disabled=true;hcb.checked=false;hsel.classList.remove('show');}
+    else{hw.style.opacity='1';hcb.disabled=false;}
+    el('endless_sub').textContent=`+${Math.round(endlessPct(siVal)*100)}% of adjusted base`;
+}
+
+function enforceCombination(){
+    const pt=gtv('ptGroup'), cs=el('combo');
+    if(pt==='Individual'){
+        [...cs.options].forEach(o=>{o.hidden=o.value!=='1A';o.disabled=o.value!=='1A';});
+        cs.value='1A'; cs.disabled=true;
+    } else {
+        [...cs.options].forEach(o=>{o.hidden=o.value==='1A';o.disabled=o.value==='1A';});
+        cs.disabled=false; if(cs.value==='1A')cs.value='2A';
+    }
+    renderMembers();
+}
+
+// ════════════════════════════════════════
+// CALCULATION
+// ════════════════════════════════════════
+let activeYr=1;
+
+function onAnyChange(){
+    updateOpdOptions(); updateMatVis();
+    const ms=getMembers();
+    if(ms.length===0){el('right').innerHTML='<div class="empty"><i class="fas fa-calculator"></i><p>Add member ages above to see live breakdown</p></div>';return;}
+    calculate(ms);
+}
+
+function calculate(members){
+    const siVal=SI_MAP[el('si').value];
+    const pt=gtv('ptGroup');
+    const zone=gtv('zoneGroup');
+
+    // Discounts
+    const dWelcome=chk('d_welcome')?0.05:0;
+    const dPref=chk('d_pref')?0.10:0;
+    const dGirl=hasGirl()?0.05:0;
+    const dZone=zone==='Zone B'?0.20:0;
+    const dCross=Math.min(chk('d_cross')?0.05:0, 0.15);
+    const fDisc=pt==='Family Floater'?floaterD(members.length):0;
+
+    // Modifiers
+    const rc=el('roomCat').value;
+    const roomPct=rc==='Single Pvt AC Room'?0.075:rc==='Twin-Sharing'?0.10:0;
+    const pedV=el('pedWait').value;
+    const pedMod=pedV==='3 Year'?0.15:pedV==='1 Year'?-0.30:0;
+    const specLoad=el('specWait').value==='1 Year'?0.10:0;
+    const ncbV=el('ncb').value;
+    const ncbLM={"200":.05,"300":.06,"400":.07,"500":.08,"600":.09,"700":.10,"800":.11,"900":.12,"1000":.13};
+    const ncbLoad=ncbLM[ncbV]||0;
+    const ncbDisc=ncbV==='NCD'?0.025:0;
+
+    // Optionals
+    const hasCons=chk('oc_cons'), hasAir=chk('oc_air'), hasEndless=chk('oc_endless'), hasRecon=chk('oc_recon');
+    const hasOpd=chk('oc_opd')&&!el('oc_opd').disabled;
+    const hasHdc=chk('oc_hdc')&&!el('oc_hdc').disabled;
+    const hcV=el('oc_hc').value;
+    const hasMat=chk('oc_mat')&&el('mat_wrap').style.display!=='none'&&!el('mat_wrap').style.display.includes('none');
+
+    const rPct=restorePct(siVal), ePct=endlessPct(siVal), orgR=organRate(siVal);
+    const matAmt=siVal===1000000?50000:75000;
+    const mwV=el('mat_wait').value;
+    const matMult=mwV==='1 Year'?1.674666666667:mwV==='2 Years'?1.0:0.80;
+    const femElig=members.filter(m=>m.role==='adult'&&m.gender==='Female'&&m.age>=18&&m.age<=45);
+
+    // OPD (computed once, same each year)
+    let opdAmt=0;
+    if(hasOpd){
+        const lf=OPD_LF[el('opd_sel').value]||0;
+        const bOpd=OPD_BASE*lf;
+        if(pt==='Individual') opdAmt=bOpd*members.length;
+        else if(pt==='Individual Floater') opdAmt=bOpd;
+        else{const n=members.length;const ff=n===2?1.20:n===3?1.40:n>3?1.50:1.0;opdAmt=bOpd*ff;}
+        opdAmt*=0.90;
+    }
+
+    const results=[];
+    let accGross=0, prevFinal=0;
+
+    for(let yr=1;yr<=5;yr++){
+        let y_base=0, y_road=0, y_radio=0, y_air=0, y_conv=0, y_hdc=0;
+        let y_mat=0, y_nb=0, y_vac=0, y_hc=0;
+        let mbd=[];
+
+        members.forEach(m=>{
+            const ca=m.age+(yr-1), b=band(ca);
+            const br=(BASE_RATES[b]&&BASE_RATES[b][siVal])?BASE_RATES[b][siVal]:0;
+            y_base+=br;
+            mbd.push({lbl:`${m.role==='adult'?'Adult':'Child'} (Age ${ca}, Band ${b})`,val:br});
+            y_road+=(ROAD[b]||0)*0.65;
+            y_radio+=(RADIO[b]||0)*2.00;
+            if(hasAir) y_air+=(AIR[b]||0)*2.00;
+            y_conv+=((CONV[b]||0)/1000)*5000;
+            if(hasHdc){const dd=el('hdc_sel').value;y_hdc+=(HDC_R[b]||0)*(HDC_DAYS[dd]||0)*HDC_DED;}
+        });
+
+        if(hasMat&&femElig.length>0){
+            femElig.forEach(f=>{
+                const ca=f.age+(yr-1);
+                if(ca>=18&&ca<=45){
+                    const mb=matBand(ca);
+                    if(MAT_RATES[mb]&&MAT_RATES[mb][matAmt]) y_mat+=MAT_RATES[mb][matAmt]*matMult;
+                    y_nb+=NB_RATES[siVal]||0;
+                    y_vac+=CHILD_VAC;
+                }
+            });
+        }
+
+        if(hcV!=='Not Opted'){
+            const elig=members.filter(m=>(m.age+yr-1)>=18).length;
+            if(elig>0){const rel=elig===2?1.20:elig===3?1.50:elig>3?1.65:1.0;y_hc=(HC_RATES[hcV]||0)*rel;}
+        }
+
+        const y_roomD=y_base*roomPct;
+        const y_post=y_base*0.03;
+        let y_ped=0;
+        if(pedMod>0) y_ped=-(y_base*pedMod);
+        else y_ped=y_base*Math.abs(pedMod);
+        const y_spec=y_base*specLoad;
+        const y_ncbL=y_base*ncbLoad;
+        const y_ncbD=-(y_base*ncbDisc);
+
+        const y_adj=y_base-y_roomD+y_ped+y_spec+y_ncbL+y_ncbD+y_post;
+        const y_restore=y_adj*rPct;
+        const y_cons=hasCons?y_adj*0.10:0;
+        const y_endl=hasEndless?y_adj*ePct:0;
+        const y_organ=orgR*members.length;
+        const y_eop=E_OPN*members.length;
+        const y_recon=hasRecon?550*members.length:0;
+
+        const y_groupA=y_adj+y_restore+y_cons+y_endl+y_organ+y_air+y_road+y_radio+y_recon+y_eop;
+        const y_floatR=pt==='Family Floater'?y_groupA*fDisc:0;
+        const y_postFA=y_groupA-y_floatR;
+        const y_groupB=opdAmt+y_hdc+y_hc+y_mat+y_vac+y_nb+y_conv;
+        const y_gross=y_postFA+y_groupB;
+
+        accGross+=y_gross;
+
+        const tdr=TENURE_DISC[yr]||0;
+        let run=accGross;
+        const d_term=run*tdr; run-=d_term;
+        const d_zone=run*dZone; run-=d_zone;
+        const d_pref=run*dPref; run-=d_pref;
+        const d_girl=run*dGirl; run-=d_girl;
+        const d_wel=run*dWelcome; run-=d_wel;
+        const d_crs=run*dCross; run-=d_crs;
+
+        let final=run;
+        const totDisc=accGross-final;
+        const maxDisc=accGross*0.45;
+        let capAdj=0, capped=false;
+        if(totDisc>maxDisc){capAdj=totDisc-maxDisc;final+=capAdj;capped=true;}
+
+        let indFR=0;
+        if(pt==='Individual Floater'&&members.length>=2){indFR=final*0.05;final-=indFR;}
+
+        const net=Math.round(final);
+
+        results.push({
+            yr, y_base, mbd,
+            y_road, y_radio, y_air, y_conv,
+            y_organ, y_eop, y_recon,
+            y_roomD, y_post, y_ped, y_spec, y_ncbL, y_ncbD,
+            y_adj, y_restore, y_cons, y_endl,
+            y_groupA, y_floatR, fDisc, y_postFA,
+            opdAmt, y_hdc, y_hc, y_mat, y_vac, y_nb,
+            y_groupB, y_gross, accGross,
+            tdr, d_term, d_zone, d_pref, d_girl, d_wel, d_crs,
+            dZone, dPref, dGirl, dWelcome, dCross,
+            indFR, capped, capAdj, net,
+            pt, mc:members.length, roomPct,
+            pedMod, ncbLoad, ncbDisc
+        });
+    }
+
+    renderBreakdown(results);
+}
+
+// ════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════
+function renderBreakdown(results){
+    const tenure=parseInt(el('tenure').value);
+    if(activeYr>tenure) activeYr=tenure;
+    const r=results[activeYr-1];
+
+    const tabs=results.slice(0,tenure).map((_,i)=>{
+        const y=i+1;
+        return `<div class="ytab ${y===activeYr?'act':''}" onclick="activeYr=${y};renderBreakdown(window._lastResults)">${y} Yr — ${f(results[i].net)}</div>`;
+    }).join('');
+
+    const row=(lbl,val,cls,badge='')=>{
+        if(Math.abs(val)<0.01)return'';
+        return `<div class="lr"><span class="lr-l">${lbl}${badge?` <span class="lr-b">${badge}</span>`:''}</span><span class="lr-v ${cls}">${f(val)}</span></div>`;
+    };
+    const sub=(lbl,val)=>`<div class="lsub"><span>${lbl}</span><span>${f(val)}</span></div>`;
+    const sh=(icon,lbl,color)=>`<div class="lsh"><i class="${icon}" style="color:${color}"></i> ${lbl}</div>`;
+
+    let h=`<div class="ytabs">${tabs}</div><div class="ledger">`;
+
+    // 1. BASE PREMIUM
+    h+=`<div class="ls">${sh('fas fa-users','Base Premium — Year '+activeYr,'#764ba2')}`;
+    r.mbd.forEach(m=>{ h+=row(m.lbl,m.val,'nt'); });
+    h+=sub('Base Total (Year '+activeYr+')',r.y_base);
+    h+='</div>';
+
+    // 2. MODIFIERS ON BASE
+    h+=`<div class="ls">${sh('fas fa-sliders-h','Modifiers Applied to Base','#0288d1')}`;
+    h+=row('Post-Hospitalisation Loading (3%)',r.y_post,'ld','+3%');
+    if(r.y_roomD>0) h+=row('Room Rent Discount',r.y_roomD,'cr',`−${Math.round(r.roomPct*100)}%`);
+    if(r.y_ped<0)   h+=row('PED Discount',r.y_ped,'cr','−15%');
+    if(r.y_ped>0)   h+=row('PED Loading',r.y_ped,'ld','+30%');
+    if(r.y_spec>0)  h+=row('Specific Disease Loading',r.y_spec,'ld','+10%');
+    if(r.y_ncbL>0)  h+=row('NCB Loading',r.y_ncbL,'ld');
+    if(r.y_ncbD<0)  h+=row('No Claim Discount (NCD)',r.y_ncbD,'cr','−2.5%');
+    h+=sub('Adjusted Base',r.y_adj);
+    h+='</div>';
+
+    // 3. INBUILT COMPONENTS (Group A additions)
+    h+=`<div class="ls">${sh('fas fa-check-circle','Inbuilt Components (Group A)','#10b981')}`;
+    h+=row(`Restore Benefit`,r.y_restore,'nt',`+${Math.round(restorePct(SI_MAP[el('si').value])*100)}%`);
+    h+=row('Road Ambulance',r.y_road,'nt','×0.65');
+    h+=row('Radio Cab (Inbuilt)',r.y_radio,'nt','×2.00');
+    h+=row('Organ Donor',r.y_organ,'nt');
+    h+=row('E-Opinion (Expert)',r.y_eop,'nt');
+    h+='</div>';
+
+    // 4. OPTIONAL GROUP A
+    const hasOptA=r.y_air>0||r.y_cons>0||r.y_endl>0||r.y_recon>0;
+    if(hasOptA){
+        h+=`<div class="ls">${sh('fas fa-plus-circle','Optional Covers — Group A (Subject to Floater)','#f59e0b')}`;
+        if(r.y_air>0)   h+=row('Air Ambulance',r.y_air,'nt','×2.00');
+        if(r.y_cons>0)  h+=row('Consumables Cover',r.y_cons,'nt','+10%');
+        if(r.y_endl>0)  h+=row('Endless Sum Insured',r.y_endl,'nt',`+${Math.round(endlessPct(SI_MAP[el('si').value])*100)}%`);
+        if(r.y_recon>0) h+=row('Reconstructive Surgery',r.y_recon,'nt','₹550/member');
+        h+='</div>';
+    }
+
+    // Group A subtotal + floater
+    h+=`<div class="ls">`;
+    h+=sub('Group A Total (Pre-Floater)',r.y_groupA);
+    if(r.y_floatR>0){
+        h+=row(`Family Floater Discount`,r.y_floatR,'cr',`−${Math.round(r.fDisc*100)}%`);
+        h+=sub('Post-Floater A',r.y_postFA);
+    }
+    h+='</div>';
+
+    // 5. GROUP B OPTIONAL
+    const hasB=r.opdAmt>0||r.y_hdc>0||r.y_hc>0||r.y_mat>0||r.y_vac>0||r.y_nb>0||r.y_conv>0;
+    if(hasB){
+        h+=`<div class="ls">${sh('fas fa-layer-group','Optional Covers — Group B (No Floater)','#8b5cf6')}`;
+        if(r.opdAmt>0) h+=row('OPD Coverage',r.opdAmt,'nt');
+        if(r.y_hdc>0)  h+=row('Hospital Daily Cash',r.y_hdc,'nt');
+        if(r.y_hc>0)   h+=row('Health Check-Up',r.y_hc,'nt');
+        if(r.y_mat>0)  h+=row('Maternity Benefit',r.y_mat,'nt');
+        if(r.y_vac>0)  h+=row('Child Vaccination',r.y_vac,'nt');
+        if(r.y_nb>0)   h+=row('New Born Baby Cover',r.y_nb,'nt');
+        if(r.y_conv>0) h+=row('Convalescence (₹5,000 min 7 days)',r.y_conv,'nt');
+        h+='</div>';
+    }
+
+    // 6. GROSS
+    h+=`<div class="ls">`;
+    h+=sub(`Year ${activeYr} Gross Premium`,r.y_gross);
+    if(activeYr>1) h+=`<div class="lr"><span class="lr-l">Cumulative Gross (Yrs 1–${activeYr})</span><span class="lr-v nt">${f(r.accGross)}</span></div>`;
+    h+='</div>';
+
+    // 7. DISCOUNTS
+    const hasDisc=r.tdr>0||r.dZone>0||r.dPref>0||r.dGirl>0||r.dWelcome>0||r.dCross>0||r.indFR>0;
+    if(hasDisc){
+        h+=`<div class="ls">${sh('fas fa-percent','Discounts (Applied on Cumulative Gross)','#10b981')}`;
+        if(r.tdr>0)      h+=row(`Multi-Year Term Discount`,r.d_term,'cr',`−${Math.round(r.tdr*100)}%`);
+        if(r.dZone>0)    h+=row('Zone B Discount',r.d_zone,'cr','−20%');
+        if(r.dPref>0)    h+=row('Preferred Network Discount',r.d_pref,'cr','−10%');
+        if(r.dGirl>0)    h+=row('Girl Child Discount (Auto)',r.d_girl,'cr','−5%');
+        if(r.dWelcome>0) h+=row('Welcome Discount',r.d_wel,'cr','−5%');
+        if(r.dCross>0)   h+=row('Cross-Sell Discount',r.d_crs,'cr',`−${Math.round(r.dCross*100)}%`);
+        if(r.indFR>0)    h+=row('Individual Floater Discount',r.indFR,'cr','−5%');
+        if(r.capped)     h+=`<div class="cap-warn"><i class="fas fa-exclamation-triangle"></i> 45% Maximum Discount Cap Applied — excess added back</div>`;
+        h+='</div>';
+    }
+
+    // TOTAL
+    h+=`<div class="ltotal"><span>${activeYr} Year Net Premium</span><span class="lt-amt">${f(r.net)}</span></div>`;
+    h+=`</div>`;
+
+    h+=`<div class="ind-note">Multi-year premiums account for age progression. Discounts applied sequentially on cumulative gross.</div>`;
+
+    window._lastResults=results;
+    el('right').innerHTML=h;
+}
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+renderMembers();
+</script>
+</body>
+</html>
